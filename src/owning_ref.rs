@@ -43,6 +43,20 @@ pub unsafe fn from_maybeuninit<T>(slot: &mut MaybeUninit<T>) -> OwningRef<'_, T>
     )
 }
 
+/// Create a `OwningRef<'a, T>` from a `&'a mut MaybeUninit<T>>` by writing a
+/// value into it.
+///
+/// The `MaybeUninit<T>` will be overwritten with `value`.
+pub fn from_maybeuninit_write<T>(slot: &mut MaybeUninit<T>, value: T) -> OwningRef<'_, T> {
+    slot.write(value);
+    unsafe {
+        Box::from_raw_in(
+            slot as *mut MaybeUninit<T> as *mut T,
+            NoopAllocator(PhantomData),
+        )
+    }
+}
+
 /// Create a `OwningRef<'a, [T]>` from a `&'a mut [MaybeUninit<T>]>`.
 ///
 /// # Safety:
