@@ -18,7 +18,7 @@ pub type OwningSlice<'a, T> = Vec<T, NoopAllocator<'a>>;
 /// Create a `OwningSlice<'a, T>` with a length and capacity of 1 from a `&'a
 /// mut MaybeUninit<T>>`.
 ///
-/// # Safety:
+/// # Safety
 ///
 /// The `T` must be initialized, and dropping or removing the element from the
 /// `OwningSlice` leaves the `MaybeUninit` semantically without a value, see
@@ -49,7 +49,7 @@ pub unsafe fn from_maybeuninit<T>(slot: &mut MaybeUninit<T>) -> OwningSlice<'_, 
 /// Create a `OwningSlice<'a, T>` with a given length from a `&'a mut
 /// [MaybeUninit<T>]>`. The capacity is the length of the given slice.
 ///
-/// # Safety:
+/// # Safety
 ///
 /// All slice elements in `[0..length]` must be initialized, see
 /// [`MaybeUninit::assume_init_mut`] and [`MaybeUninit::assume_init_drop`].
@@ -116,7 +116,7 @@ pub fn empty_from_maybeuninit<T>(slot: &mut MaybeUninit<T>) -> OwningSlice<'_, T
 /// The slice elements are not assumed to be initialized, so this is not an
 /// `unsafe` function.
 ///
-/// # Exapmples
+/// # Examples
 ///
 /// ```rust
 /// # use std::mem::MaybeUninit;
@@ -137,4 +137,52 @@ pub fn empty_from_maybeuninit_slice<T>(slot: &mut [MaybeUninit<T>]) -> OwningSli
             NoopAllocator(PhantomData),
         )
     }
+}
+
+/// Create a full `OwningSlice<'a, T>` from a raw slice pointer.
+///
+/// # Safety
+///
+/// The memory behind `ptr` must be uniquely borrowed for `'a`.
+///
+/// All slice elements must be initialized, see
+/// [`MaybeUninit::assume_init_mut`] and [`MaybeUninit::assume_init_drop`].
+pub unsafe fn full_from_raw<'a, T>(ptr: *mut [T]) -> OwningSlice<'a, T> {
+    Vec::from_raw_parts_in(
+        ptr as *mut MaybeUninit<T> as *mut T,
+        ptr.len(),
+        ptr.len(),
+        NoopAllocator(PhantomData),
+    )
+}
+
+/// Create a `OwningSlice<'a, T>` with a given length from a raw slice pointer.
+/// The capacity is the length of the given slice.
+///
+/// # Safety
+///
+/// The memory behind `ptr` must be uniquely borrowed for `'a`.
+///
+/// All slice elements in `[0..length]` must be initialized, see
+/// [`MaybeUninit::assume_init_mut`] and [`MaybeUninit::assume_init_drop`].
+pub unsafe fn from_raw<'a, T>(ptr: *mut [T], length: usize) -> OwningSlice<'a, T> {
+    debug_assert!(length <= ptr.len());
+    Vec::from_raw_parts_in(
+        ptr as *mut [MaybeUninit<T>] as *mut [T] as *mut T,
+        length,
+        ptr.len(),
+        NoopAllocator(PhantomData),
+    )
+}
+
+/// Create an empty `OwningSlice<'a, T>` from a raw slice pointer.
+/// The capacity is the length of the given slice.
+///
+/// # Safety
+///
+/// The memory behind `ptr` must be uniquely borrowed for `'a`.
+///
+/// The slice elements are not assumed to be initialized.
+pub unsafe fn empty_from_raw<'a, T>(ptr: *mut [T]) -> OwningSlice<'a, T> {
+    unsafe { Vec::from_raw_parts_in(ptr.cast(), 0, ptr.len(), NoopAllocator(PhantomData)) }
 }

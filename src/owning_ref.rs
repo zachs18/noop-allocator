@@ -15,7 +15,7 @@ pub type OwningRef<'a, T> = Box<T, NoopAllocator<'a>>;
 
 /// Create a `OwningRef<'a, T>` from a `&'a mut ManuallyDrop<T>>`.
 ///
-/// # Safety:
+/// # Safety
 ///
 /// Dropping or moving out of the `OwningRef` leaves the borrowed `ManuallyDrop`
 /// semantically without a value; see [`ManuallyDrop::drop`] and
@@ -32,15 +32,12 @@ pub unsafe fn from_manuallydrop<T: ?Sized>(slot: &mut ManuallyDrop<T>) -> Owning
 
 /// Create a `OwningRef<'a, T>` from a `&'a mut MaybeUninit<T>>`.
 ///
-/// # Safety:
+/// # Safety
 ///
 /// The `T` must be initialized, see [`MaybeUninit::assume_init_mut`] and
 /// [`MaybeUninit::assume_init_drop`].
 pub unsafe fn from_maybeuninit<T>(slot: &mut MaybeUninit<T>) -> OwningRef<'_, T> {
-    Box::from_raw_in(
-        slot as *mut MaybeUninit<T> as *mut T,
-        NoopAllocator(PhantomData),
-    )
+    Box::from_raw_in(slot.as_mut_ptr(), NoopAllocator(PhantomData))
 }
 
 /// Create a `OwningRef<'a, T>` from a `&'a mut MaybeUninit<T>>` by writing a
@@ -49,17 +46,12 @@ pub unsafe fn from_maybeuninit<T>(slot: &mut MaybeUninit<T>) -> OwningRef<'_, T>
 /// The `MaybeUninit<T>` will be overwritten with `value`.
 pub fn from_maybeuninit_write<T>(slot: &mut MaybeUninit<T>, value: T) -> OwningRef<'_, T> {
     slot.write(value);
-    unsafe {
-        Box::from_raw_in(
-            slot as *mut MaybeUninit<T> as *mut T,
-            NoopAllocator(PhantomData),
-        )
-    }
+    unsafe { Box::from_raw_in(slot.as_mut_ptr(), NoopAllocator(PhantomData)) }
 }
 
 /// Create a `OwningRef<'a, [T]>` from a `&'a mut [MaybeUninit<T>]>`.
 ///
-/// # Safety:
+/// # Safety
 ///
 /// All slice elements must be initialized, see [`MaybeUninit::assume_init_mut`]
 /// and [`MaybeUninit::assume_init_drop`].
@@ -68,4 +60,16 @@ pub unsafe fn from_maybeuninit_slice<T>(slot: &mut [MaybeUninit<T>]) -> OwningRe
         slot as *mut [MaybeUninit<T>] as *mut [T],
         NoopAllocator(PhantomData),
     )
+}
+
+/// Create a `OwningRef<'a, T>` from a raw pointer.
+///
+/// # Safety
+///
+/// The memory behind `ptr` must be uniquely borrowed for `'a`.
+///
+/// The pointee must be initialized, see
+/// [`MaybeUninit::assume_init_mut`] and [`MaybeUninit::assume_init_drop`].
+pub unsafe fn from_raw<'a, T: ?Sized>(ptr: *mut T) -> OwningRef<'a, T> {
+    Box::from_raw_in(ptr, NoopAllocator(PhantomData))
 }

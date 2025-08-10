@@ -45,6 +45,12 @@ impl<'a> NoopAllocator<'a> {
     }
 }
 
+impl<'a> Default for NoopAllocator<'a> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 unsafe impl Allocator for NoopAllocator<'_> {
     fn allocate(&self, layout: Layout) -> Result<NonNull<[u8]>, AllocError> {
         if layout.size() == 0 {
