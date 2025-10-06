@@ -1,6 +1,6 @@
 [package]
 name = "noop-allocator"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["Zachary S"]
 edition = "2021"
 description = "An `Allocator` that does nothing."

@@ -15,6 +15,23 @@ use alloc::vec::Vec;
 /// in it, implemented as `Vec<T, NoopAllocator<'a>>`.
 pub type OwningSlice<'a, T> = Vec<T, NoopAllocator<'a>>;
 
+/// Create an empty `OwningSlice<'a, T>` with a length and capacity of 0.
+///
+/// # Examples:
+///
+/// ```rust
+/// # use std::mem::MaybeUninit;
+/// use noop_allocator::owning_slice;
+/// let mut vec: owning_slice::OwningSlice<'_, String> = owning_slice::new();
+/// assert_eq!(vec, [] as [String; 0]);
+/// assert_eq!(vec.len(), 0);
+/// assert_eq!(vec.capacity(), 0);
+/// assert_eq!(vec.pop().as_deref(), None);
+/// ```
+pub const fn new<'a, T>() -> OwningSlice<'a, T> {
+    Vec::new_in(NoopAllocator(PhantomData))
+}
+
 /// Create a `OwningSlice<'a, T>` with a length and capacity of 1 from a `&'a
 /// mut MaybeUninit<T>>`.
 ///

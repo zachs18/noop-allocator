@@ -1,3 +1,7 @@
+# 0.1.3
+
+* Add `owning_ref::new` wrapping `Vec::new_in` to create an empty `OwningSlice` with no capacity.
+
 # 0.1.2
 
 * Add `owning_ref::from_raw` to unsafely crate an `OwningRef<'_, T>` from a raw pointer.
