@@ -1,3 +1,7 @@
+# 0.1.4
+
+* Update to `alloc_layout_extra` stabilization and rename.
+
 # 0.1.3
 
 * Add `owning_ref::new` wrapping `Vec::new_in` to create an empty `OwningSlice` with no capacity.

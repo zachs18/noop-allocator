@@ -1,6 +1,5 @@
 #![no_std]
 #![feature(allocator_api)]
-#![feature(alloc_layout_extra)]
 #![warn(rust_2018_idioms)]
 
 #[cfg(feature = "alloc")]
@@ -54,7 +53,7 @@ impl<'a> Default for NoopAllocator<'a> {
 unsafe impl Allocator for NoopAllocator<'_> {
     fn allocate(&self, layout: Layout) -> Result<NonNull<[u8]>, AllocError> {
         if layout.size() == 0 {
-            Ok(NonNull::slice_from_raw_parts(layout.dangling(), 0))
+            Ok(NonNull::slice_from_raw_parts(layout.dangling_ptr(), 0))
         } else {
             Err(AllocError)
         }
